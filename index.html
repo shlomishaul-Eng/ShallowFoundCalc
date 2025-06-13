@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחשבון הנדסי וחשבון סופי - V22 - מהדורת פרימיום</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+
+    <style>
+        :root {
+            --bg-body: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+            --bg-main: #ffffff;
+            --text-main: #1F2937;
+            --text-secondary: #4b5563;
+            --border-color: #D1D5DB;
+            --section-border: #4F46E5;
+            --warning-bg: #fffbeb;
+            --warning-border: #fbbF24;
+            --warning-text: #b45309;
+            --result-bg: #EFF6FF;
+            --result-border: #BFDBFE;
+            --result-title-text: #1E40AF;
+            --result-value-text: #1D4ED8;
+            --solution-step-bg: #f9fafb;
+            --tab-active-bg: #ffffff;
+            --tab-inactive-bg: #e5e7eb;
+            --tab-active-text: #4F46E5;
+            --tab-inactive-text: #4b5563;
+            --btn-mode-active-bg: #ffffff;
+            --btn-mode-active-text: #4F46E5;
+            --btn-mode-inactive-bg: transparent;
+            --btn-mode-inactive-text: #4b5563;
+            --btn-success-bg: #10B981;
+            --btn-danger-bg: #EF4444;
+            --header-controls-bg: rgba(229, 231, 235, 0.5);
+            --group-header-bg: #eef2ff;
+            --group-component-bg: #f8fafc;
+        }
+        .dark {
+            --bg-body: linear-gradient(to bottom right, #000000, #111827, #1F2937);
+            --bg-main: #1F2937;
+            --text-main: #E5E7EB;
+            --text-secondary: #9CA3AF;
+            --border-color: #4B5563;
+            --section-border: #818CF8;
+            --warning-bg: #422006;
+            --warning-text: #fef3c7;
+            --result-bg: #1E3A8A;
+            --result-border: #3B82F6;
+            --result-title-text: #DBEAFE;
+            --result-value-text: #ffffff;
+            --solution-step-bg: #2d3748;
+            --tab-active-bg: #1F2937;
+            --tab-inactive-bg: #111827;
+            --tab-active-text: #A5B4FC;
+            --tab-inactive-text: #9CA3AF;
+            --btn-mode-active-bg: #4F46E5;
+            --btn-mode-active-text: #ffffff;
+            --btn-mode-inactive-bg: transparent;
+            --btn-mode-inactive-text: #9CA3AF;
+            --header-controls-bg: rgba(55, 65, 81, 0.5);
+            --group-header-bg: #312e81;
+            --group-component-bg: #2d3748;
+        }
+        
+        html { scroll-behavior: smooth; }
+        body { 
+            font-family: 'Assistant', 'Inter', sans-serif; 
+            background-image: var(--bg-body); 
+            font-size: 1.1rem; 
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .main-content-box { 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+            border-radius: 0.75rem; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transition: background-color 0.3s ease, color 0.3s ease; 
+        }
+        .section-title { font-size: 1.5rem; font-weight: 600; color: var(--text-main); border-bottom: 2px solid var(--section-border); padding-bottom: 0.5rem; margin-bottom: 1.25rem; transition: color 0.3s ease, border-color 0.3s ease; }
+        .input-label { display: flex; align-items: center; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.4rem; font-size: 1.05rem; }
+        .input-field { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border-color); background-color: var(--bg-main); color: var(--text-main); border-radius: 0.375rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s ease-in-out; font-size: 1.05rem; }
+        .input-field:focus { outline: 2px solid transparent; outline-offset: 2px; border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3); }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 0.375rem; font-weight: 600; transition: all 0.15s ease-in-out; font-size: 1.05rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;}
+        .btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .btn-primary { background-color: #4F46E5; color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: #4338CA; transform: translateY(-1px); }
+        .btn-success { background-color: var(--btn-success-bg); color: white; }
+        .btn-success:hover:not(:disabled) { background-color: #059669; }
+        .btn-danger { background-color: var(--btn-danger-bg); color: white; }
+        .btn-danger:hover:not(:disabled) { background-color: #DC2626; }
+        
+        .result-box { background-color: var(--result-bg); border: 1px solid var(--result-border); padding: 1.25rem; border-radius: 0.5rem; margin-top: 1rem; transition: background-color 0.3s ease, border-color 0.3s ease; }
+        .result-value { font-weight: 700; color: var(--result-value-text); font-size: 1.3rem; opacity: 0; transform: translateY(10px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
+        .result-value.visible { opacity: 1; transform: translateY(0); }
+        .canvas-container { display: grid; grid-template-rows: auto auto; gap: 1rem; margin: 0 auto; }
+        canvas.interactive-canvas { border: 1px solid var(--border-color); border-radius: 0.375rem; width: 100%; height: auto; cursor: zoom-in; transition: border-color 0.3s ease; }
+        
+        .warning-box { background-color: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning-text); padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; }
+        .assumptions-box { background-color: #fefce8; border: 1px solid #fde047; color: #854d0e; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; } 
+        .dark .assumptions-box { background-color: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+        
+        .tooltip-icon { width: 1.1rem; height: 1.1rem; margin-inline-start: 0.5rem; cursor: pointer; color: #6B7280; }
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext { visibility: hidden; width: 280px; background-color: #2c3e50; color: #fff; text-align: right; border-radius: 8px; padding: 10px 14px; position: absolute; z-index: 100; bottom: 135%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s ease-in-out; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); line-height: 1.5; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        
+        /* Learn Mode Styles */
+        .learn-tooltip { display: none; }
+        .learn-mode-active .learn-tooltip { display: inline-block; }
+
+        /* Tab Styles */
+        .tab-button { padding: 0.75rem 1rem; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; background-color: var(--tab-inactive-bg); color: var(--tab-inactive-text); font-size: 0.9rem; text-align: center;}
+        .tab-button.active { border-bottom-color: var(--section-border); background-color: var(--tab-active-bg); color: var(--tab-active-text); }
+        .tab-content { display: none; padding-top: 1.5rem; }
+        .tab-content.active { display: block; }
+
+        /* Solution Tab Styles */
+        .solution-step { background-color: var(--solution-step-bg); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+        .solution-step-title { font-size: 1.4rem; font-weight: 600; color: var(--text-main); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+        .solution-step p { margin-bottom: 0.75rem; line-height: 1.6; }
+        .formula-box { background-color: #eef2ff; border-right: 4px solid #4f46e5; margin: 1rem 0; padding: 1rem; direction: ltr; text-align: left; }
+        .dark .formula-box { background-color: #312e81; border-right-color: #a5b4fc; }
+        .formula { font-family: 'Times New Roman', Times, serif; font-style: italic; color: #1e3a8a; font-size: 1.2rem; display: block; white-space: pre-wrap; word-wrap: break-word; }
+        .dark .formula { color: #e0e7ff;}
+        .step-result { font-weight: 600; margin-top: 1rem; background-color: #dbeafe; color: #1e40af; padding: 0.75rem; border-radius: 0.375rem; text-align: center; }
+        .dark .step-result { background-color: #1e3a8a; color: #dbeafe; }
+        .legend-details { margin-top: 1rem; background-color: var(--group-component-bg); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; }
+        .legend-details summary { cursor: pointer; font-weight: 500; color: var(--text-secondary); }
+        .legend-content { margin-top: 0.5rem; font-size: 0.9rem; }
+
+
+        /* Cost Estimation & Final Account Styles */
+        .cost-section { background-color: var(--solution-step-bg); border: 1px solid var(--border-color); padding: 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+        .main-table { width: 100%; margin-top: 1rem; border-collapse: collapse; }
+        .main-table th, .main-table td { border: 1px solid var(--border-color); padding: 0.75rem; text-align: center; vertical-align: middle; }
+        .main-table th { background-color: #f3f4f6; font-weight: 600; }
+        .dark .main-table th { background-color: #374151; }
+        .main-table input { text-align: center; max-width: 100px; }
+        .summary-table { width: 100%; max-width: 500px; margin-top: 1.5rem; margin-right: auto; }
+        .summary-table td { padding: 0.6rem 1rem; }
+        .summary-table .summary-label { font-weight: 500; color: var(--text-secondary); }
+        .summary-table .summary-value { font-weight: 600; color: var(--text-main); text-align: left; }
+        .summary-table .summary-total { font-weight: 700; font-size: 1.2rem; border-top: 2px solid var(--section-border); padding-top: 0.75rem; }
+        
+        #final-account-table .group-header-row { cursor: pointer; background-color: var(--group-header-bg); transition: background-color 0.2s ease-in-out; }
+        #final-account-table .group-header-row:hover { background-color: #dbeafe; }
+        .dark #final-account-table .group-header-row:hover { background-color: #312e81; }
+        #final-account-table .group-header-row .arrow-icon { transition: transform 0.3s ease; }
+        #final-account-table .group-header-row.open .arrow-icon { transform: rotate(90deg); }
+        #final-account-table .component-row { background-color: var(--group-component-bg); display: none; }
+        #final-account-table .component-row.open { display: table-row; }
+        #final-account-table .component-row td { border-color: rgba(209, 213, 219, 0.5); font-size: 0.95em; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .dark #final-account-table .component-row td { border-color: rgba(75, 85, 99, 0.5); }
+        #final-account-table .component-name { text-align: right; padding-right: 3rem !important; position: relative;}
+        #final-account-table .component-name::before { content: '↳'; position: absolute; right: 1.5rem; color: var(--text-secondary); }
+        .qty-controls { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .qty-btn { background-color: #6366f1; color: white; border-radius: 9999px; width: 1.75rem; height: 1.75rem; font-weight: bold; border: none; cursor: pointer; transition: background-color 0.2s; }
+        .qty-btn:hover:not(:disabled) { background-color: #4f46e5; }
+        .qty-btn.delete-btn { background-color: #ef4444; }
+        .qty-btn.delete-btn:hover:not(:disabled) { background-color: #b91c1c; }
+
+        /* Mode Switcher */
+        .mode-switcher-btn { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; transition: all 0.2s ease-in-out; border: 1px solid transparent; }
+        .mode-switcher-btn.active { background-color: var(--btn-mode-active-bg); color: var(--btn-mode-active-text); box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06); border-color: var(--border-color); }
+        .mode-switcher-btn:not(.active) { background-color: var(--btn-mode-inactive-bg); color: var(--btn-mode-inactive-text); }
+
+        /* Modal Styles */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0s 0.3s; }
+        .modal.visible { opacity: 1; visibility: visible; transition: opacity 0.3s; }
+        .modal-content { background: var(--bg-main); padding: 2rem; border-radius: 0.5rem; max-width: 90vw; max-width: 500px; text-align: center; }
+        .modal-content p { margin-bottom: 1.5rem; }
+        .modal-buttons { display: flex; justify-content: center; gap: 1rem; }
+        .modal-close-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; }
+        
+        /* Header Controls Styles */
+        .header-controls { position: absolute; top: 0; left: 0; padding: 0.75rem; display: flex; align-items: center; gap: 0.75rem; z-index: 10;}
+        .control-btn { background: var(--header-controls-bg); backdrop-filter: blur(4px); border: 1px solid var(--border-color); border-radius: 9999px; padding: 0.5rem; cursor: pointer; transition: all 0.3s ease; color: var(--text-main); }
+        .control-btn:hover { transform: scale(1.1); }
+        .control-btn svg { width: 1.5rem; height: 1.5rem; }
+        .unit-toggle { display: flex; align-items: center; background-color: var(--header-controls-bg); border: 1px solid var(--border-color); border-radius: 9999px; padding: 0.25rem; cursor: pointer; transition: all 0.3s ease; }
+        .unit-toggle:hover { box-shadow: 0 0 10px rgba(79, 70, 229, 0.4); }
+        .unit-toggle span { padding: 0.25rem 0.75rem; font-size: 0.8rem; font-weight: 600; border-radius: 9999px; transition: all 0.3s ease; }
+        .unit-toggle.kpa-active .kpa-unit { background-color: #3b82f6; color: white; }
+        .unit-toggle.ton-active .ton-unit { background-color: #ef4444; color: white; }
+        
+        /* Learn Mode Toggle */
+        .learn-mode-toggle { display: flex; align-items: center; gap: 0.5rem; background-color: var(--header-controls-bg); border: 1px solid var(--border-color); border-radius: 9999px; padding: 0.3rem; }
+        #learn-mode-checkbox { appearance: none; width: 3.5rem; height: 1.75rem; background-color: var(--border-color); border-radius: 9999px; position: relative; cursor: pointer; transition: background-color 0.3s ease; }
+        #learn-mode-checkbox::before { content: ''; position: absolute; width: 1.25rem; height: 1.25rem; border-radius: 50%; background-color: white; top: 0.25rem; left: 0.25rem; transition: transform 0.3s ease; }
+        #learn-mode-checkbox:checked { background-color: #4f46e5; }
+        #learn-mode-checkbox:checked::before { transform: translateX(1.75rem); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="main-content-box max-w-6xl mx-auto p-6 md:p-8">
+        <header class="mb-6 relative">
+            <div class="header-controls">
+                <button id="theme-toggle-btn" class="control-btn" aria-label="Toggle theme">
+                    <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.95-4.223-1.591 1.591M5.25 12H3m4.223-4.95L6.364 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+                    </svg>
+                    <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+                    </svg>
+                </button>
+                <div id="unit-toggle" class="unit-toggle" aria-label="Toggle units">
+                    <span class="ton-unit">t/m²</span>
+                    <span class="kpa-unit">kPa</span>
+                </div>
+                 <div class="learn-mode-toggle" aria-label="Toggle Learn Mode">
+                    <span class="font-semibold text-sm">מצב לימוד</span>
+                    <input type="checkbox" id="learn-mode-checkbox">
+                </div>
+            </div>
+            <img src="https://i.postimg.cc/j28gPPbw/Whats-App-2025-06-12-00-52-49-f414dbe7.jpg" alt="לוגו" class="absolute top-0 right-0 h-16 w-16 md:h-20 md:w-20 rounded-full shadow-md">
+            <div class="text-center">
+                <h1 class="text-3xl md:text-4xl font-bold text-indigo-700 dark:text-indigo-400">מחשבון הנדסי וחשבון סופי</h1>
+                <p class="text-gray-500 dark:text-gray-400 mt-2 text-base">מובא כחומר עזר עבור הרצאה מס' 4 במאמצים מותרים בקורס קרקע וביסוס - שלומי שאול</p>
+            </div>
+        </header>
+
+        <div class="border-b border-gray-300 dark:border-gray-600 mb-4">
+            <nav class="flex flex-wrap -mb-px">
+                <button class="tab-button active" data-tab="calculation-tab">חישוב הנדסי</button>
+                <button class="tab-button" data-tab="solution-tab">מהלך פתרון</button>
+                <button class="tab-button" data-tab="cost-estimation-tab">אומדן עלות יסוד</button>
+                <button class="tab-button" data-tab="quantities-summary-tab">סיכום כמויות</button>
+                <button class="tab-button" data-tab="final-account-tab">חשבון סופי</button>
+                <button class="tab-button" data-tab="export-tab">ייצוא ושיתוף</button>
+            </nav>
+        </div>
+
+        <main>
+            <div id="calculation-tab" class="tab-content active">
+
+                <!-- Mode Switcher -->
+                <div class="flex items-center justify-center bg-gray-100 dark:bg-gray-800 p-1 rounded-lg mb-6 max-w-md mx-auto">
+                    <button id="calc-mode-btn" class="mode-switcher-btn w-1/2 active">מצב חישוב</button>
+                    <button id="design-mode-btn" class="mode-switcher-btn w-1/2">מצב תכנון</button>
+                </div>
+
+                <!-- Assumptions Box -->
+                <details class="assumptions-box">
+                    <summary class="font-semibold cursor-pointer">הנחות יסוד ומגבלות לשימוש בנוסחת טרצגי (לחץ להצגה)</summary>
+                    <ul class="list-disc pr-6 mt-2 space-y-1 text-sm">
+                        <li>היסוד הוא "יסוד רדוד", כלומר עומק הביסוס קטן או שווה לרוחב היסוד (D<sub>f</sub> &le; B).</li>
+                        <li>בסיס היסוד מחוספס.</li>
+                        <li>תאורטית, מנגנון הכשל הוא כשל גזירה כללי.</li>
+                        <li>צורת היסוד המוגדרת היא יסוד נמשך (אינסופי), ריבועי או עגול.</li>
+                        <li>פני הקרקע אופקיים ותחתית היסוד אופקית.</li>
+                        <li>העומס על היסוד הוא אנכי ופועל במרכז היסוד (צנטרי).</li>
+                        <li>אין התחשבות בחוזק הגזירה של הקרקע מעל מפלס הביסוס.</li>
+                    </ul>
+                </details>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 md:gap-x-10 gap-y-8">
+                    <div class="space-y-8">
+                        
+                        <div id="design-inputs" class="hidden">
+                            <h2 class="section-title">עומס תכן נדרש</h2>
+                            <div>
+                                <label for="required_load" class="input-label">עומס נדרש מהאלמנט (P<sub>net,req</sub>) <span class="unit-text-load ml-1">[kN או t]</span></label>
+                                <input type="number" id="required_load" value="500" class="input-field">
+                                <p class="text-xs text-gray-500 mt-1">הזן עומס נקי נדרש על העמוד (ביח' kN או t) או עומס נדרש על הקיר (ביח' kN/m או t/m).</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h2 class="section-title">נתוני קרקע</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5">
+                                <div>
+                                    <label for="c_prime" class="input-label">
+                                        <span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">קוהזיה (הידבקות) מייצגת את רכיב חוזק הגזירה שאינו תלוי במאמץ. היא נובעת מקשרים בין חלקיקים דקים (חרסיות). זוהי "הדביקות" של הקרקע.</span></span>
+                                        <span>קוהזיה אפקטיבית (c&prime;) <span id="c-prime-unit-label">[kPa]</span></span>
+                                    </label>
+                                    <input type="number" id="c_prime" value="10" class="input-field">
+                                </div>
+                                <div>
+                                    <label for="phi_deg" class="input-label">
+                                        <span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">זווית החיכוך הפנימי מייצגת את רכיב חוזק הגזירה הנובע מחיכוך בין גרגירי הקרקע. תלויה בצפיפות, צורה ומינרלוגיה של הגרגרים.</span></span>
+                                        <span>זווית חיכוך פנימי (&phi;&prime;) [מעלות]</span>
+                                    </label>
+                                    <input type="number" id="phi_deg" value="25" step="0.1" class="input-field">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label for="gamma_val" class="input-label">
+                                    <span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">המשקל המרחבי של הקרקע במצבה הטבעי (לח/יבש), מעל מפלס מי התהום. זהו המשקל ליחידת נפח.</span></span>
+                                    <span>משקל מרחבי טבעי/כולל (&gamma;) <span id="gamma-unit-label">[kN/m&sup3;]</span></span>
+                                    </label>
+                                    <input type="number" id="gamma_val" value="18" class="input-field">
+                                </div>
+                                <div class="sm:col-span-2 mt-2">
+                                     <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+                                         <input type="checkbox" id="gwt_checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                         <span>התחשב בהשפעת מי תהום</span>
+                                     </label>
+                                </div>
+                                <div id="gwt_inputs" class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5 hidden">
+                                    <div>
+                                        <label for="dw_val" class="input-label">
+                                            <span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">עומק מפלס מי התהום, נמדד מפני הקרקע. משפיע על המאמצים האפקטיביים ועל חוזק הקרקע.</span></span>
+                                            <span>עומק מפלס מי תהום (D<sub>w</sub>) [m]</span>
+                                        </label>
+                                        <input type="number" id="dw_val" value="3.0" class="input-field">
+                                    </div>
+                                    <div>
+                                        <label for="gamma_sat_val" class="input-label">
+                                            <span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">המשקל המרחבי של הקרקע במצב רווי לחלוטין. נדרש לחישוב המשקל השקוע (בציפה) של הקרקע מתחת למפלס מי התהום.</span></span>
+                                            <span>משקל מרחבי רווי (&gamma;<sub>sat</sub>) <span id="gamma-sat-unit-label">[kN/m&sup3;]</span></span>
+                                        </label>
+                                        <input type="number" id="gamma_sat_val" value="20" class="input-field">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h2 class="section-title">גיאומטריית היסוד והאלמנט</h2>
+                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5">
+                                <div>
+                                    <label for="Df_val" class="input-label"><span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">עומק הביסוס הוא המרחק האנכי מפני הקרקע עד לתחתית היסוד.</span></span><span>עומק ביסוס (D<sub>f</sub>) [m]</span></label>
+                                    <input type="number" id="Df_val" value="1.0" step="0.1" class="input-field">
+                                </div>
+                                <div id="b_input_container">
+                                    <label for="B_val" class="input-label"><span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">רוחב היסוד הוא המידה הקטנה יותר של בסיס היסוד.</span></span><span>רוחב יסוד (B) [m]</span></label>
+                                    <input type="number" id="B_val" value="2.0" step="0.1" class="input-field">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label for="foundation_shape" class="input-label"><span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">צורת היסוד משפיעה על מקדמי הצורה המשמשים בחישוב.</span></span><span>צורת היסוד</span></label>
+                                    <select id="foundation_shape" class="input-field">
+                                        <option value="strip">יסוד נמשך (Strip)</option>
+                                        <option value="square" selected>יסוד ריבועי (Square)</option>
+                                        <option value="circular">יסוד עגול (Circular)</option>
+                                    </select>
+                                </div>
+                                <div id="structure_inputs" class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5">
+                                    <div>
+                                        <label for="h_f" class="input-label"><span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">עובי פלטת היסוד מבטון. נדרש לחישוב משקל עצמי.</span></span><span>עובי יסוד (h<sub>f</sub>) [cm]</span></label>
+                                        <input type="number" id="h_f" value="40" class="input-field">
+                                    </div>
+                                    <div id="col_b_div">
+                                        <label for="col_b" id="col_b_label" class="input-label"><span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span id="col_b_tooltip" class="tooltiptext">רוחב חתך העמוד היוצא מהיסוד.</span></span><span>רוחב עמוד (b<sub>col</sub>) [cm]</span></label>
+                                        <input type="number" id="col_b" value="40" class="input-field">
+                                    </div>
+                                    <div id="col_l_div">
+                                        <label for="col_l" class="input-label"><span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">אורך חתך העמוד היוצא מהיסוד.</span></span><span>אורך חתך עמוד (l<sub>col</sub>) [cm]</span></label>
+                                        <input type="number" id="col_l" value="40" class="input-field">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h2 class="section-title">מקדם בטיחות</h2>
+                             <div>
+                                <label for="FS_val" class="input-label"><span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">מקדם הבטיחות (FS) משמש להמרת תסבולת ההרס לתסבולת מותרת. ערכים מקובלים הם בין 2.5 ל-3.5.</span></span><span>מקדם בטיחות (FS)</span></label>
+                                <input type="number" id="FS_val" value="3" step="0.1" class="input-field">
+                            </div>
+                        </div>
+                        
+                        <button id="calculateButton" class="w-full btn btn-primary mt-6">חשב</button>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div class="canvas-container">
+                            <div>
+                                <h3 class="section-title text-center !border-b-0">אנימציה - חתך יסוד</h3>
+                                <canvas id="foundationSectionCanvas" width="400" height="250" class="interactive-canvas"></canvas>
+                            </div>
+                            <div>
+                                <h3 class="section-title text-center !border-b-0">אנימציה - מבט על</h3>
+                                <canvas id="foundationPlanCanvas" width="400" height="150" class="interactive-canvas"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- NEW: Failure Mechanism Canvas -->
+                        <div id="failureMechanismContainer">
+                            <h3 class="section-title text-center !border-b-0">שרטוט מנגנון הכשל</h3>
+                             <canvas id="failureMechanismCanvas" width="400" height="250" class="interactive-canvas"></canvas>
+                        </div>
+                        
+                        <div id="assumptionWarningBox" class="warning-box hidden"></div>
+                        
+                        <div id="resultsBox" class="result-box hidden">
+                             <h2 class="section-title !mb-5">תוצאות החישוב</h2>
+                            <div id="resultsContent" class="space-y-4">
+                                <div id="designResultText" class="hidden p-3 bg-green-100 dark:bg-green-900 border-r-4 border-green-500 rounded mb-4 space-y-2">
+                                    <p class="font-semibold">במצב תכנון, עבור העומס הנדרש:</p>
+                                    <p id="design_b_output" class="text-lg font-bold"></p>
+                                    <p id="design_cost_output" class="text-md font-medium"></p>
+                                </div>
+                                <div>
+                                    <p class="result-title flex items-center">
+                                        תסבולת מותרת לקרקע (<span class="q-all-label">q<sub>all</sub></span>):
+                                         <span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">הלחץ המרבי שניתן להפעיל בבטחה על הקרקע. מחושב כ-qᵤ / FS.</span></span>
+                                    </p>
+                                    <p id="qall_output" class="result-value">-</p>
+                                </div>
+                                <div id="netLoadResult">
+                                    <p class="result-title flex items-center">
+                                        עומס תכן נקי מותר על האלמנט (<span class="p-net-label">P<sub>net,all</sub></span>):
+                                        <span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">העומס המותר שהעמוד/אלמנט יכול להעביר ליסוד, לאחר ניכוי משקל היסוד והקרקע שעליו.</span></span>
+                                    </p>
+                                    <p id="p_net_output" class="result-value">-</p>
+                                </div>
+                                <div id="stripLoadResult" class="hidden">
+                                    <p class="result-title">עומס תכן מותר על הקיר (<span class="q-strip-label">Q<sub>all</sub></span>):</p>
+                                    <p id="strip_qall_output" class="result-value">-</p>
+                                </div>
+                                <hr class="my-2 border-t border-blue-200 dark:border-blue-800">
+                                 <div>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 flex items-center">
+                                        תסבולת הרס אולטימטיבית (<span class="qu-label">q<sub>u</sub></span>):
+                                        <span class="tooltip learn-tooltip"><svg class="tooltip-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><span class="tooltiptext">הלחץ המרבי שהקרקע יכולה לשאת רגע לפני כשל גזירה.</span></span>
+                                    </p>
+                                    <p id="qu_output" class="text-sm text-gray-600 dark:text-gray-400">-</p>
+                                 </div>
+                                 <div>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">מקדמי תסבולת שחושבו:</p>
+                                    <p id="factors_output" class="text-sm text-gray-600 dark:text-gray-400">-</p>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graph Container -->
+                <div id="graph-container" class="mt-12 hidden">
+                    <h2 class="section-title">גרף תסבולת מותרת (<span class="q-all-label">q<sub>all</sub></span>) כפונקציה של רוחב היסוד (B)</h2>
+                    <div class="relative h-96">
+                        <canvas id="bearingCapacityChart" class="interactive-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="solution-tab" class="tab-content">
+                <div id="solution-steps-container">
+                    <div class="text-center p-8 text-gray-500">
+                        <p>בצע חישוב בלשונית "חישוב הנדסי" כדי להציג את מהלך הפתרון המפורט.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cost-estimation-tab" class="tab-content">
+                <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">זיהוי יסוד</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="foundation-name" class="input-label">שם/סוג יסוד</label>
+                            <input type="text" id="foundation-name" class="input-field" value="יסוד בודד">
+                        </div>
+                        <div>
+                            <label for="foundation-index" class="input-label">אינדקס/מספר</label>
+                            <input type="text" id="foundation-index" class="input-field" value="F-101">
+                        </div>
+                     </div>
+                </div>
+
+                <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">מידות היסוד לחישוב כמויות</h3>
+                    <div id="foundation-dimensions-display" class="p-3 bg-indigo-100 dark:bg-indigo-900 rounded-md text-center font-semibold mb-4">
+                    </div>
+                    <div id="strip-length-input-container" class="hidden">
+                        <label for="strip-foundation-length" class="input-label">אורך יסוד נמשך (L) [m]</label>
+                        <input type="number" id="strip-foundation-length" class="input-field" value="10">
+                        <p class="text-xs text-gray-500 mt-1">הזן את האורך הכולל של היסוד הנמשך עבור חישוב הכמויות.</p>
+                    </div>
+                </div>
+
+
+                <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">כתב כמויות ועלויות עבור האלמנט</h3>
+                    <p class="text-sm text-gray-500 -mt-4 mb-4">הכמויות מתעדכנות אוטומטית מהגדרות המידות. הזן מחירים ליחידה והוסף לחשבון.</p>
+                    <table class="main-table">
+                        <thead>
+                            <tr>
+                                <th>סעיף</th>
+                                <th>כמות</th>
+                                <th>יחידה</th>
+                                <th>מחיר יחידה (₪)</th>
+                                <th>סה"כ (₪)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>חפירה ועבודות עפר</td>
+                                <td id="boq-excavation-qty">-</td>
+                                <td>מ"ק</td>
+                                <td><input type="number" id="boq-excavation-price" class="input-field" value="80"></td>
+                                <td id="boq-excavation-total">-</td>
+                            </tr>
+                            <tr>
+                                <td>בטון</td>
+                                <td id="boq-concrete-qty">-</td>
+                                <td>מ"ק</td>
+                                <td><input type="number" id="boq-concrete-price" class="input-field" value="550"></td>
+                                <td id="boq-concrete-total">-</td>
+                            </tr>
+                            <tr>
+                                <td>טפסנות</td>
+                                <td id="boq-formwork-qty">-</td>
+                                <td>מ"ר</td>
+                                <td><input type="number" id="boq-formwork-price" class="input-field" value="120"></td>
+                                <td id="boq-formwork-total">-</td>
+                            </tr>
+                            <tr>
+                                <td>פלדה (ברזל)</td>
+                                <td id="boq-steel-qty">-</td>
+                                <td>טון</td>
+                                <td><input type="number" id="boq-steel-price" class="input-field" value="6500"></td>
+                                <td id="boq-steel-total">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                 <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">אפשרויות חישוב פלדה</h3>
+                     <div class="flex items-center space-x-4 space-x-reverse mb-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="steel-calc-method" value="ratio" class="form-radio h-4 w-4 text-indigo-600" checked>
+                            <span class="mr-2">חישוב לפי יחס זיון</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="steel-calc-method" value="total" class="form-radio h-4 w-4 text-indigo-600">
+                            <span class="mr-2">הזנת משקל כולל</span>
+                        </label>
+                     </div>
+                     <div id="steel-ratio-inputs">
+                         <label for="steel-ratio" class="input-label">יחס זיון (ק"ג פלדה למ"ק בטון)</label>
+                         <input type="number" id="steel-ratio" class="input-field" value="120">
+                     </div>
+                      <div id="steel-total-inputs" class="hidden">
+                         <label for="steel-total-weight" class="input-label">משקל פלדה כולל ביסוד (טון)</label>
+                         <input type="number" id="steel-total-weight" class="input-field" value="0.5">
+                     </div>
+                </div>
+                <button id="addToAccountButton" class="w-full btn btn-success mt-6">הוסף יסוד לחשבון הסופי</button>
+            </div>
+
+            <div id="quantities-summary-tab" class="tab-content">
+                <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">סיכום חומרים עיקריים</h3>
+                    <table id="quantities-summary-materials" class="main-table">
+                        <thead>
+                            <tr>
+                                <th>חומר</th>
+                                <th>כמות מצטברת</th>
+                                <th>יחידה</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">סיכום סעיפים אחרים (שירותים/כללי)</h3>
+                    <table id="quantities-summary-others" class="main-table">
+                         <thead>
+                            <tr>
+                                <th>תיאור הסעיף</th>
+                                <th>כמות</th>
+                                <th>יחידה</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="final-account-tab" class="tab-content">
+                <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">הוספת סעיף חופשי לחשבון</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                        <div class="md:col-span-2">
+                            <label for="custom-item-desc" class="input-label">תיאור הסעיף</label>
+                            <input type="text" id="custom-item-desc" class="input-field" placeholder="לדוגמה: מדידות">
+                        </div>
+                        <div>
+                            <label for="custom-item-qty" class="input-label">כמות</label>
+                            <input type="number" id="custom-item-qty" class="input-field" value="1">
+                        </div>
+                         <div>
+                            <label for="custom-item-unit" class="input-label">יחידה</label>
+                            <input type="text" id="custom-item-unit" class="input-field" value="קומפלט">
+                        </div>
+                        <div>
+                            <label for="custom-item-price" class="input-label">מחיר יח' (₪)</label>
+                            <input type="number" id="custom-item-price" class="input-field" placeholder="1500">
+                        </div>
+                    </div>
+                    <button id="addCustomItemButton" class="btn btn-primary mt-4">הוסף סעיף</button>
+                </div>
+                
+                <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">ריכוז חשבון סופי</h3>
+                     <table id="final-account-table" class="main-table">
+                        <thead>
+                            <tr>
+                                <th class="text-right w-2/5">תיאור הסעיף</th>
+                                <th>כמות</th>
+                                <th>יחידה</th>
+                                <th>מחיר יחידה (₪)</th>
+                                <th>סה"כ (₪)</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="final-account-table-body">
+                        </tbody>
+                    </table>
+                    <div class="flex justify-end mt-4">
+                        <button id="clearAccountButton" class="btn btn-danger">נקה את כל החשבון</button>
+                    </div>
+                </div>
+                
+                <div class="cost-section">
+                     <h3 class="section-title !text-xl !border-indigo-400">סיכום תקציבי כולל</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <div class="grid grid-cols-2 gap-x-4 items-end">
+                                <div>
+                                    <label for="unforeseen-percent" class="input-label">בצ"מ (%)</label>
+                                    <input type="number" id="unforeseen-percent" class="input-field" value="15">
+                                </div>
+                                <div>
+                                    <label for="retention-percent" class="input-label">עכבון (%)</label>
+                                    <input type="number" id="retention-percent" class="input-field" value="10">
+                                </div>
+                                 <div class="col-span-2">
+                                    <label for="vat-percent" class="input-label">מע"מ (%)</label>
+                                    <input type="number" id="vat-percent" class="input-field" value="17">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <table class="summary-table !mr-0 !ml-auto">
+                                <tbody>
+                                    <tr>
+                                        <td class="summary-label">סה"כ עלות ישירה</td>
+                                        <td id="summary-direct-cost" class="summary-value">0 ₪</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="summary-label">סכום בצ"מ</td>
+                                        <td id="summary-unforeseen-value" class="summary-value">0 ₪</td>
+                                    </tr>
+                                    <tr class="border-t border-gray-200 dark:border-gray-700">
+                                        <td class="summary-label pt-3">סה"כ (לפני מע"מ)</td>
+                                        <td id="summary-subtotal" class="summary-value pt-3">0 ₪</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="summary-label">סכום עכבון</td>
+                                        <td id="summary-retention-value" class="summary-value text-red-600">0 ₪</td>
+                                    </tr>
+                                     <tr>
+                                        <td class="summary-label">סכום מע"מ</td>
+                                        <td id="summary-vat-value" class="summary-value">0 ₪</td>
+                                    </tr>
+                                    <tr class="summary-total">
+                                        <td class="summary-label">סה"כ לתשלום</td>
+                                        <td id="summary-final-total" class="summary-value">0 ₪</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                     </div>
+                </div>
+
+            </div>
+            
+            <div id="export-tab" class="tab-content">
+                <div class="cost-section">
+                    <h3 class="section-title !text-xl !border-indigo-400">אפשרויות ייצוא ושיתוף</h3>
+                    <p class="text-sm text-gray-500 -mt-4 mb-6">בחר את הפורמט הרצוי כדי לייצא את נתוני הפרויקט.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <button id="export-pdf-btn" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm5.5 1.5a1.5 1.5 0 011.06.44l2.5 2.5a1.5 1.5 0 010 2.12l-2.5 2.5a1.5 1.5 0 01-2.12-2.12L10.38 9H7.5a1.5 1.5 0 010-3h2.88L8.44 3.94A1.5 1.5 0 019.5 3.5z" clip-rule="evenodd" /></svg>
+                            <span>ייצא ל-PDF</span>
+                        </button>
+                        <button id="export-doc-btn" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.5 3A1.5 1.5 0 001 4.5v11A1.5 1.5 0 002.5 17h15a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0017.5 3H2.5zM2 4.5a.5.5 0 01.5-.5h15a.5.5 0 01.5.5v11a.5.5 0 01-.5-.5h-15a.5.5 0 01-.5-.5v-11z" /><path d="M5 6.5A1.5 1.5 0 016.5 5h3A1.5 1.5 0 0111 6.5v1A1.5 1.5 0 019.5 9h-3A1.5 1.5 0 015 7.5v-1zM6.5 6a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h3a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5h-3zM5 11.5A1.5 1.5 0 016.5 10h7A1.5 1.5 0 0115 11.5v1A1.5 1.5 0 0113.5 14h-7A1.5 1.5 0 015 12.5v-1zM6.5 11a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h7a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5h-7z" /></svg>
+                            <span>ייצא ל-Word</span>
+                        </button>
+                        <button id="export-xls-btn" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.5 3A1.5 1.5 0 001 4.5v11A1.5 1.5 0 002.5 17h15a1.5 1.5 0 001.5-1.5v-11A1.5 1.5 0 0017.5 3H2.5zM2 4.5a.5.5 0 01.5-.5h15a.5.5 0 01.5.5v11a.5.5 0 01-.5-.5h-15a.5.5 0 01-.5-.5v-11z" /><path d="M9.854 6.146a.5.5 0 01.708 0l2 2a.5.5 0 01-.708.708L10 7.207l-1.854 1.853a.5.5 0 11-.708-.708l2-2zM9.5 13a.5.5 0 01-.5-.5V7a.5.5 0 011 0v5.5a.5.5 0 01-.5-.5z" transform="rotate(90 10 10)"/></svg>
+                             <span>ייצא ל-Excel</span>
+                        </button>
+                        <div class="tooltip">
+                             <button id="export-drive-btn" class="btn btn-primary w-full" disabled>
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4 4-4-4h3V3h2v8z" /></svg>
+                                 <span>העלה ל-Drive</span>
+                             </button>
+                             <span class="tooltiptext">העלאה ישירה ל-Google Drive אינה נתמכת מטעמי אבטחה. תוכל להוריד את הקבצים ולהעלות אותם ידנית.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center text-gray-400 text-sm mt-12">
+             <p>&copy; 2024 כל הזכויות שמורות לשלומי שאול.</p>
+             <p>כלי זה נבנה למטרות לימודיות וטכנולוגיות בלבד ואין להסתמך עליו לביצוע תכנון הנדסי.</p>
+        </footer>
+    </div>
+    
+    <!-- Modals -->
+    <div id="image-modal" class="modal">
+        <div class="modal-content"><img id="modal-image" src="" alt="Enlarged View"></div>
+        <button class="modal-close-btn">&times;</button>
+    </div>
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <button id="confirm-modal-close" class="modal-close-btn">&times;</button>
+            <p id="confirm-modal-text" class="text-lg">האם אתה בטוח?</p>
+            <div class="modal-buttons">
+                <button id="confirm-modal-yes" class="btn btn-danger">כן</button>
+                <button id="confirm-modal-no" class="btn btn-primary">לא</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js" type="module"></script>
+</body>
+</html>
